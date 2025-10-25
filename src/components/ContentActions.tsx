@@ -32,6 +32,12 @@ const ContentActions: React.FC<ContentActionsProps> = ({ onSummaryGenerated }) =
       });
       
       onSummaryGenerated(`**${type.toUpperCase()} Summary:**\n\n${summary}`);
+      
+      // Auto-collapse the summary options after successful generation
+      setTimeout(() => {
+        setIsExpanded(false);
+      }, 800);
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate summary';
       setError(errorMessage);
