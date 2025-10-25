@@ -66,20 +66,29 @@ const App: React.FC = () => {
         }));
 
         try {
-          // Process the request and generate appropriate prompt
-          const prompt = await contextMenuHandler.processRequest(pendingRequest);
+          // Process the request and generate response
+          const response = await contextMenuHandler.processRequest(pendingRequest);
           
           // Clear the pending request
           await contextMenuHandler.clearPendingRequest();
           
-          // Fetch AI response
-          const aiResponse = await fetchAIResponse(prompt, (progress) => {
-            console.log(`Context menu AI processing: ${progress}%`);
-          });
+          // For some request types (like links and pages with key points), the response is already final
+          // For others, it might be a prompt that needs further AI processing
+          let finalResponse: string;
+          
+          if (pendingRequest.type === 'link' || pendingRequest.type === 'page' || pendingRequest.type === 'image') {
+            // These return final responses from Summarizer/Prompt APIs
+            finalResponse = response;
+          } else {
+            // These return prompts that need further AI processing (like selection)
+            finalResponse = await fetchAIResponse(response, (progress) => {
+              console.log(`Context menu AI processing: ${progress}%`);
+            });
+          }
           
           const assistantMessage: Message = {
             id: generateMessageId(),
-            content: aiResponse,
+            content: finalResponse,
             role: 'assistant',
             timestamp: new Date()
           };

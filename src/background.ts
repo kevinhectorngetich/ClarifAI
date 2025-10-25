@@ -77,7 +77,12 @@ async function handleLinkExplanation(info: chrome.contextMenus.OnClickData, tab:
     });
 
     // Open the popup or notify it
-    await chrome.action.openPopup();
+    try {
+        await chrome.action.openPopup();
+    } catch (error) {
+        console.warn('Could not open popup (no active window):', error);
+        // The pending request is still stored, user can open popup manually
+    }
 }
 
 async function handleSelectionExplanation(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
@@ -98,7 +103,12 @@ async function handleSelectionExplanation(info: chrome.contextMenus.OnClickData,
     });
 
     // Open the popup or notify it
-    await chrome.action.openPopup();
+    try {
+        await chrome.action.openPopup();
+    } catch (error) {
+        console.warn('Could not open popup (no active window):', error);
+        // The pending request is still stored, user can open popup manually
+    }
 }
 
 async function handlePageSummary(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
@@ -115,7 +125,12 @@ async function handlePageSummary(info: chrome.contextMenus.OnClickData, tab: chr
     });
 
     // Open the popup or notify it
-    await chrome.action.openPopup();
+    try {
+        await chrome.action.openPopup();
+    } catch (error) {
+        console.warn('Could not open popup (no active window):', error);
+        // The pending request is still stored, user can open popup manually
+    }
 }
 
 async function handleImageDescription(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
@@ -136,7 +151,12 @@ async function handleImageDescription(info: chrome.contextMenus.OnClickData, tab
     });
 
     // Open the popup or notify it
-    await chrome.action.openPopup();
+    try {
+        await chrome.action.openPopup();
+    } catch (error) {
+        console.warn('Could not open popup (no active window):', error);
+        // The pending request is still stored, user can open popup manually
+    }
 }
 
 // Listen for messages from content script or popup
@@ -176,66 +196,180 @@ async function fetchLinkContent(url: string): Promise<string> {
     try {
         console.log('Fetching content from:', url);
 
-        // Fetch the page content
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to find if there's already a tab with this URL open
+        const tabs = await chrome.tabs.query({ url: url });
+
+        if (tabs.length > 0 && tabs[0].id) {
+            console.log('Found existing tab with URL, extracting content...');
+            return await extractContentFromTab(tabs[0].id);
         }
 
-        const html = await response.text();
+        // If no existing tab, create a new one (hidden/background approach)
+        console.log('Creating new tab to fetch content...');
 
-        // Basic content extraction (you might want to improve this)
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
+        // First, ensure we have an active window to create the tab in
+        const windows = await chrome.windows.getAll({ populate: false });
+        let targetWindowId: number | undefined;
 
-        // Remove script and style elements
-        const scripts = doc.querySelectorAll('script, style');
-        scripts.forEach(script => script.remove());
+        if (windows.length === 0) {
+            // No windows exist, create a new one
+            console.log('No windows found, creating new window...');
+            const newWindow = await chrome.windows.create({
+                url: url,
+                focused: false,
+                state: 'minimized'
+            });
 
-        // Get the main content
-        const title = doc.querySelector('title')?.textContent || '';
-        const metaDescription = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-
-        // Try to get main content from common selectors
-        const contentSelectors = [
-            'main',
-            'article',
-            '.content',
-            '.post-content',
-            '.entry-content',
-            '.article-content',
-            '#content',
-            '.main-content'
-        ];
-
-        let mainContent = '';
-        for (const selector of contentSelectors) {
-            const element = doc.querySelector(selector);
-            if (element) {
-                mainContent = element.textContent || '';
-                break;
+            if (!newWindow.tabs || !newWindow.tabs[0]?.id) {
+                throw new Error('Failed to create window with tab');
             }
+
+            const tab = newWindow.tabs[0];
+
+            // Wait for the page to load
+            await waitForTabToLoad(tab.id!);
+
+            // Extract content
+            const content = await extractContentFromTab(tab.id!);
+
+            // Close the window we created
+            await chrome.windows.remove(newWindow.id!);
+
+            return content;
+        } else {
+            // Use existing window
+            targetWindowId = windows[0].id;
         }
 
-        // Fallback to body if no main content found
-        if (!mainContent) {
-            mainContent = doc.body?.textContent || '';
+        const tab = await chrome.tabs.create({
+            url: url,
+            active: false,  // Open in background
+            windowId: targetWindowId
+        });
+
+
+        if (!tab.id) {
+            throw new Error('Failed to create tab');
         }
 
-        // Clean up the text
-        mainContent = mainContent
-            .replace(/\s+/g, ' ')
-            .trim()
-            .substring(0, 5000); // Limit to 5000 characters
+        // Wait for the page to load
+        await waitForTabToLoad(tab.id);
 
+        // Extract content
+        const content = await extractContentFromTab(tab.id);
+
+        // Close the tab we created
+        await chrome.tabs.remove(tab.id);
+
+        return content;
+
+    } catch (error) {
+        console.error('Error fetching link content:', error);
+        throw new Error(`Failed to fetch content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+async function waitForTabToLoad(tabId: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            reject(new Error('Tab loading timeout'));
+        }, 10000); // 10 second timeout
+
+        const listener = (updatedTabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+            if (updatedTabId === tabId && changeInfo.status === 'complete') {
+                clearTimeout(timeout);
+                chrome.tabs.onUpdated.removeListener(listener);
+                // Give it a moment for any dynamic content to load
+                setTimeout(resolve, 1000);
+            }
+        };
+
+        chrome.tabs.onUpdated.addListener(listener);
+    });
+}
+
+async function extractContentFromTab(tabId: number): Promise<string> {
+    try {
+        // Inject content extraction script
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => {
+                // This function runs in the context of the target page
+                try {
+                    // Remove script and style elements for cleaner content
+                    const scripts = document.querySelectorAll('script, style');
+                    scripts.forEach(script => script.remove());
+
+                    // Get basic page info
+                    const title = document.querySelector('title')?.textContent || '';
+                    const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+
+                    // Try to get main content from common selectors
+                    const contentSelectors = [
+                        'main',
+                        'article',
+                        '.content',
+                        '.post-content',
+                        '.entry-content',
+                        '.article-content',
+                        '#content',
+                        '.main-content',
+                        '[role="main"]',
+                        '.markdown-body', // GitHub specific
+                        '.timeline-comment-wrapper', // GitHub issues
+                        '.js-discussion' // GitHub discussions
+                    ];
+
+                    let mainContent = '';
+                    for (const selector of contentSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            mainContent = element.textContent || '';
+                            break;
+                        }
+                    }
+
+                    // Fallback to body if no main content found
+                    if (!mainContent) {
+                        mainContent = document.body?.textContent || '';
+                    }
+
+                    // Clean up the text
+                    mainContent = mainContent
+                        .replace(/\s+/g, ' ')
+                        .trim()
+                        .substring(0, 8000); // Increase limit for better content
+
+                    return {
+                        title,
+                        metaDescription,
+                        mainContent,
+                        url: window.location.href
+                    };
+                } catch (error) {
+                    return {
+                        title: '',
+                        metaDescription: '',
+                        mainContent: `Error extracting content: ${error}`,
+                        url: window.location.href
+                    };
+                }
+            }
+        });
+
+        if (!results || results.length === 0 || !results[0].result) {
+            throw new Error('Failed to extract content from page');
+        }
+
+        const { title, metaDescription, mainContent } = results[0].result;
         const content = `Title: ${title}\n\nDescription: ${metaDescription}\n\nContent: ${mainContent}`;
 
         console.log('Successfully extracted content, length:', content.length);
         return content;
 
     } catch (error) {
-        console.error('Error fetching link content:', error);
-        throw new Error(`Failed to fetch content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error('Error extracting content from tab:', error);
+        throw new Error(`Failed to extract content: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 

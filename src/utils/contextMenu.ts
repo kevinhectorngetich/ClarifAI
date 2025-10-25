@@ -93,6 +93,8 @@ export class ContextMenuHandler {
         }
 
         try {
+            console.log('Processing link request for:', request.url);
+
             // Fetch content from the linked page
             const response = await chrome.runtime.sendMessage({
                 type: 'FETCH_LINK_CONTENT',
@@ -100,24 +102,86 @@ export class ContextMenuHandler {
             });
 
             if (!response.success) {
-                throw new Error(response.error || 'Failed to fetch link content');
+                console.warn('Direct content fetch failed:', response.error);
+
+                // Provide a more helpful fallback with URL analysis
+                return this.generateUrlBasedAnalysis(request.url);
             }
 
-            // Generate a prompt for explaining the linked content
-            const prompt = `Please explain the content from this link: ${request.url}
+            // Use the Summarizer API directly to generate key points
+            const { generateSummary } = await import('./summarizer');
 
-Content from the linked page:
-${response.content}
+            console.log('Generating key points summary for link:', request.url);
 
-Please provide a clear and concise explanation of what this page is about, its main points, and why it might be relevant or interesting. Format your response in a friendly, conversational way.`;
+            const summary = await generateSummary(response.content, {
+                type: 'key-points',
+                format: 'markdown',
+                length: 'medium',
+                context: `This content is from the link: ${request.url}. Please extract the most important and specific points from this page.`
+            });
 
-            return prompt;
+            return `**Key Points from Link:** ${request.url}\n\n${summary}`;
+
         } catch (error) {
             console.error('Error processing link request:', error);
-            // Fallback to basic URL explanation
-            return `Please explain what you can about this link: ${request.url}
+            return this.generateUrlBasedAnalysis(request.url);
+        }
+    }
 
-I wasn't able to fetch the content from this page, but please provide any general information you might know about this URL or domain, and explain what type of content it might contain.`;
+    /**
+     * Generate analysis based on URL patterns and domain knowledge
+     */
+    private generateUrlBasedAnalysis(url: string): string {
+        try {
+            const urlObj = new URL(url);
+            const domain = urlObj.hostname;
+            const path = urlObj.pathname;
+            const params = urlObj.searchParams;
+
+            let analysis = `**Link Analysis:** ${url}\n\n`;
+            analysis += `I couldn't directly access the content from this link, but I can provide some insights based on the URL:\n\n`;
+
+            // Domain-specific analysis
+            if (domain.includes('github.com')) {
+                if (path.includes('/issues/')) {
+                    const issueNumber = path.split('/issues/')[1]?.split('/')[0];
+                    analysis += `📋 **GitHub Issue Analysis:**\n`;
+                    analysis += `• This is GitHub issue #${issueNumber}\n`;
+                    analysis += `• Repository: ${path.split('/').slice(1, 3).join('/')}\n`;
+                    analysis += `• Issues typically contain bug reports, feature requests, or discussions\n`;
+                    analysis += `• You can visit the link directly to see the full discussion and comments\n\n`;
+                } else if (path.includes('/pull/')) {
+                    analysis += `🔄 **GitHub Pull Request**\n`;
+                    analysis += `• This appears to be a pull request for code changes\n`;
+                } else if (path.includes('/releases')) {
+                    analysis += `🚀 **GitHub Release Page**\n`;
+                    analysis += `• This shows software releases and changelogs\n`;
+                }
+            } else if (domain.includes('stackoverflow.com')) {
+                analysis += `❓ **Stack Overflow Question**\n`;
+                analysis += `• Programming Q&A platform\n`;
+                analysis += `• Likely contains technical problem and solutions\n`;
+            } else if (domain.includes('medium.com') || domain.includes('dev.to')) {
+                analysis += `📝 **Blog Article**\n`;
+                analysis += `• Technical blog post or tutorial\n`;
+            } else if (domain.includes('wikipedia.org')) {
+                analysis += `📚 **Wikipedia Article**\n`;
+                analysis += `• Encyclopedia entry with comprehensive information\n`;
+            } else if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+                analysis += `🎥 **YouTube Video**\n`;
+                analysis += `• Video content - I cannot analyze video content directly\n`;
+            }
+
+            analysis += `\n💡 **Suggestions:**\n`;
+            analysis += `• Visit the link directly in a new tab for full content\n`;
+            analysis += `• Copy and paste specific text from the page into our chat for analysis\n`;
+            analysis += `• Try using the page summary feature when you're on the actual page\n\n`;
+
+            analysis += `*Note: This analysis is based on URL patterns. For detailed content analysis, please visit the link or copy the content into our chat.*`;
+
+            return analysis;
+        } catch (error) {
+            return `I encountered an error while trying to analyze this link: ${url}\n\nPlease try:\n• Opening the link directly\n• Copying content from the page into our chat\n• Using the page summary feature when visiting the page`;
         }
     }
 
@@ -178,10 +242,9 @@ Format your response in a friendly, educational way that's easy to understand.`;
             }
 
             const pageContent = response.content;
-            const prompt = `Please provide a comprehensive summary of this webpage:
 
-Title: ${pageContent.title}
-URL: ${request.pageUrl}
+            // Prepare content for summarization
+            const contentToSummarize = `Title: ${pageContent.title}
 Description: ${pageContent.metaDescription}
 
 Main headings:
@@ -191,23 +254,33 @@ Main content:
 ${pageContent.mainContent}
 
 Key paragraphs:
-${pageContent.paragraphs.slice(0, 3).join('\n\n')}
+${pageContent.paragraphs.slice(0, 3).join('\n\n')}`;
 
-Please provide:
-1. A concise summary of the main topic and key points
-2. The primary purpose or goal of this page
-3. Important details or insights
-4. Who this content might be most relevant for
+            // Use the Summarizer API directly to generate key points
+            const { generateSummary } = await import('./summarizer');
 
-Format your response as a clear, well-structured summary that captures the essence of the page.`;
+            console.log('Generating key points summary for page:', request.pageUrl);
 
-            return prompt;
+            const summary = await generateSummary(contentToSummarize, {
+                type: 'key-points',
+                format: 'markdown',
+                length: 'medium',
+                context: `This is a summary of the webpage: ${request.pageTitle || request.pageUrl}`
+            });
+
+            return `**Page Summary:** ${request.pageTitle || request.pageUrl}\n\n${summary}`;
+
         } catch (error) {
             console.error('Error processing page request:', error);
             // Fallback to basic page summary
-            return `Please provide a summary of this webpage: ${request.pageTitle || request.pageUrl}
+            return `I wasn't able to extract detailed content from this page: ${request.pageTitle || request.pageUrl}
 
-I wasn't able to extract detailed content from the page, but please provide a summary based on the title and URL, and explain what type of content or information this page likely contains.`;
+This could be due to:
+- Dynamic content loading
+- Page access restrictions
+- Complex page structure
+
+Please try copying and pasting the specific content you'd like analyzed into the chat.`;
         }
     }
 
@@ -272,7 +345,7 @@ I wasn't able to extract detailed content from the page, but please provide a su
     getActionMessage(request: PendingRequest): string {
         switch (request.type) {
             case 'link':
-                return `Explaining content from: ${request.url}`;
+                return `Extracting key points from: ${request.url}`;
             case 'selection':
                 return `Explaining selected text: "${request.text?.substring(0, 50)}${request.text && request.text.length > 50 ? '...' : ''}"`;
             case 'page':

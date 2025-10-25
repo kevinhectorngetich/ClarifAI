@@ -47,7 +47,8 @@ export const testSummarizerAPI = async (): Promise<{
             type: 'tldr',
             format: 'plain-text',
             length: 'short',
-            language: 'en'
+            outputLanguage: 'en-US',
+            expectedInputLanguages: ['en-US']
         });
 
         if (!summarizer) {

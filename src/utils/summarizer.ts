@@ -5,8 +5,9 @@ export interface SummarizerOptions {
     type?: 'key-points' | 'tldr' | 'teaser' | 'headline';
     format?: 'markdown' | 'plain-text';
     length?: 'short' | 'medium' | 'long';
-    language?: 'en' | 'es' | 'ja';
-    outputLanguage?: 'en' | 'es' | 'ja'; // Chrome API expects this property
+    language?: 'en-US' | 'es-ES' | 'ja-JP';
+    outputLanguage?: 'en-US' | 'es-ES' | 'ja-JP'; // Chrome API expects this property with locale
+    expectedInputLanguages?: string[]; // From MDN docs
 }
 
 export interface SummarizerInstance {
@@ -23,8 +24,9 @@ declare global {
                 type?: 'key-points' | 'tldr' | 'teaser' | 'headline';
                 format?: 'markdown' | 'plain-text';
                 length?: 'short' | 'medium' | 'long';
-                language?: 'en' | 'es' | 'ja';
-                outputLanguage?: 'en' | 'es' | 'ja';
+                language?: 'en-US' | 'es-ES' | 'ja-JP';
+                outputLanguage?: 'en-US' | 'es-ES' | 'ja-JP';
+                expectedInputLanguages?: string[];
                 monitor?: (monitor: EventTarget) => void;
             }) => Promise<SummarizerInstance>;
         };
@@ -75,8 +77,8 @@ export const createSummarizer = async (
             type: 'key-points',
             format: 'markdown',
             length: 'medium',
-            language: 'en', // Default to English
-            outputLanguage: 'en', // Chrome API requires this for output language
+            language: 'en-US', // Default to US English
+            outputLanguage: 'en-US', // Chrome API requires this for output language
             ...options
         };        // Add progress monitoring if callback provided
         if (onProgress) {
@@ -95,7 +97,8 @@ export const createSummarizer = async (
             type: summarizerOptions.type || 'key-points',
             format: summarizerOptions.format || 'markdown',
             length: summarizerOptions.length || 'medium',
-            language: 'en', // Chrome API might expect 'language' for output
+            outputLanguage: summarizerOptions.outputLanguage || 'en-US',
+            expectedInputLanguages: summarizerOptions.expectedInputLanguages || ['en-US'],
             monitor: summarizerOptions.monitor
         } as any);
         console.log('Summarizer created successfully');
@@ -111,7 +114,8 @@ export const createSummarizer = async (
                     type: 'key-points',
                     format: 'plain-text',
                     length: 'short',
-                    language: 'en'
+                    outputLanguage: 'en-US',
+                    expectedInputLanguages: ['en-US']
                 } as any);
                 console.log('Fallback summarizer created successfully');
                 return fallbackSummarizer;
@@ -132,11 +136,11 @@ export const generateSummary = async (
     onProgress?: (progress: number) => void
 ): Promise<string> => {
     try {
-        console.log('Creating summarizer with options:', { ...options, outputLanguage: options.outputLanguage || 'en' });
+        console.log('Creating summarizer with options:', { ...options, outputLanguage: options.outputLanguage || 'en-US' });
 
         const summarizer = await createSummarizer({
-            language: 'en',
-            outputLanguage: 'en',
+            language: 'en-US',
+            outputLanguage: 'en-US',
             ...options
         }, onProgress);
 
