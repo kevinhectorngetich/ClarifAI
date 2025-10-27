@@ -17,23 +17,27 @@ ClarifAI is an intelligent Chrome extension that leverages Google's cutting-edge
 ## Key Features & Functionality
 
 ### 🧠 **AI-Powered Content Analysis**
+
 - **Page Summarization**: Generate key points, TL;DR summaries, teasers, and headlines from any webpage
 - **Smart Explanations**: Transform complex topics into beginner-friendly explanations using the Feynman Technique
 - **Context-Aware Responses**: Understands the relationship between content and user queries
 
 ### 🖱️ **Seamless Context Menu Integration**
+
 - **Right-click Link Explanation**: Explain any link's content without opening it
 - **Selected Text Clarification**: Highlight any text and get instant explanations
 - **Instant Page Summaries**: Summarize entire pages with a single right-click
 - **Image Descriptions**: Describe images and visual content (Beta feature)
 
 ### 💬 **Interactive Chat Interface**
+
 - **Conversational AI**: Ask questions about the current page content
 - **Multi-format Summaries**: Choose between different summary types based on your needs
 - **Copy & Share**: One-click copying of AI responses with visual feedback
 - **Progress Tracking**: Real-time indicators for AI processing
 
 ### 🎨 **User Experience Excellence**
+
 - **Auto-minimizing Interface**: Summary panels automatically collapse after generation to maximize reading space
 - **Beautiful UI**: Clean, responsive design built with React and Tailwind CSS
 - **Real-time Feedback**: Progress bars, loading states, and success indicators
@@ -42,18 +46,21 @@ ClarifAI is an intelligent Chrome extension that leverages Google's cutting-edge
 ## Chrome APIs Utilized
 
 ### 🤖 **Chrome Summarizer API**
+
 - **Purpose**: Generates structured summaries of webpage content
 - **Implementation**: Creates key points, TL;DR, teaser, and headline summaries
 - **Language Support**: Supports English (en-US), Spanish (es-ES), and Japanese (ja-JP)
 - **Features**: Configurable summary length, format (markdown/plain-text), and context
 
 ### 🧠 **Chrome Prompt API (Multimodal)**
+
 - **Purpose**: Provides advanced AI capabilities for text generation and image description
 - **Implementation**: Powers conversational AI responses and image analysis
 - **Features**: Temperature control, context understanding, and multi-turn conversations
 - **Status**: Currently in experimental phase for stable Chrome versions
 
 ### 📋 **Chrome Extension APIs**
+
 - **Context Menus API**: Right-click integration for seamless workflow
 - **Storage API**: Persistent settings and request handling
 - **Scripting API**: Content extraction from web pages
@@ -79,16 +86,19 @@ ClarifAI is an intelligent Chrome extension that leverages Google's cutting-edge
 ## Impact & Benefits
 
 ### ⚡ **Productivity Enhancement**
+
 - Reduces documentation reading time by 60-80%
 - Eliminates context switching between multiple resources
 - Provides instant clarification without leaving the current page
 
 ### 🎓 **Learning Acceleration**
+
 - Breaks down complex concepts into digestible explanations
 - Provides multiple summary formats for different learning styles
 - Offers contextual understanding rather than isolated information
 
 ### 🌐 **Accessibility**
+
 - Makes technical content more accessible to beginners
 - Reduces language barriers with multi-language support
 - Provides alternative content formats for different comprehension needs
@@ -106,6 +116,7 @@ ClarifAI is an intelligent Chrome extension that leverages Google's cutting-edge
 ClarifAI represents one of the first Chrome extensions to leverage Google's built-in AI capabilities, demonstrating the potential of local AI processing for enhanced privacy and performance. By utilizing Chrome's Gemini Nano model through the Summarizer and Prompt APIs, the extension provides intelligent content analysis without requiring external API keys or cloud processing.
 
 This approach ensures:
+
 - **Privacy**: Content remains on the user's device
 - **Performance**: Near-instant AI responses
 - **Reliability**: No dependency on external services
