@@ -109,7 +109,7 @@ _Screen: Click copy button_
 _Screen: Show Chrome DevTools with API calls_
 
 **Narration:**
-"What makes ClarifAI special is that it uses Chrome's built-in AI APIs. The Summarizer API handles content analysis, while the Prompt API powers the conversational features. Everything runs locally on your device - no external API keys, no privacy concerns, and lightning-fast responses."
+"What makes ClarifAI exceptional is that it uses Chrome's built-in AI APIs. The Summarizer API handles content analysis, while the Prompt API powers the conversational features. Everything runs locally on your device - no external API keys, no privacy concerns, and lightning-fast responses."
 
 _Screen: Show API documentation/features_
 
