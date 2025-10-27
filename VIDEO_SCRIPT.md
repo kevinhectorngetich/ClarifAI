@@ -35,7 +35,7 @@ This is where ClarifAI comes to the rescue."
 _Screen: ClarifAI logo and Chrome extension installation_
 
 **Narration:**
-"I built ClarifAI, a Chrome extension that leverages Google's cutting-edge built-in AI APIs to instantly clarify and summarize any web content. With Chrome introducing Gemini Nano through the Summarizer and Prompt APIs, I saw an opportunity to revolutionize how we learn from technical documentation."
+"I built ClarifAI, a Chrome extension that leverages Google's cutting-edge built-in AI APIs to instantly clarify and summarize any web content. With Chrome introducing Gemini Nano through the Summarizer and Prompt APIs, I saw an opportunity to revolutionize how we learn from technical documentation and research papers."
 
 _Screen: Show Chrome flags and AI features being enabled_
 
