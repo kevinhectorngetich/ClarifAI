@@ -7,7 +7,7 @@ A Chrome Extension built with React, TypeScript, and Tailwind CSS that provides 
 ### Core AI Capabilities
 
 - 🤖 **Chrome Summarizer API Integration** - Uses Chrome's built-in AI for explanations
-- 🖼️ **Image Description** - Multimodal AI using Chrome's Prompt API
+- 🖼️ **Image Description** - Context-based image analysis using web content
 - 💬 **Smart Chat Interface** - Contextual responses using current page content
 - 📄 **Page Content Summarization** - Key points, TL;DR, headlines, and teasers
 - 🧠 **Feynman Technique Explanations** - Complex topics broken down simply
@@ -48,7 +48,7 @@ ClarifAI/
 │   ├── components/
 │   │   ├── ChatMessage.tsx       # Individual message display
 │   │   ├── ChatInput.tsx         # User input component
-│   │   ├── ImageDescription.tsx  # Image upload and description UI
+│   │   ├── ImageDescription.tsx  # Image description UI component
 │   │   └── ContentActions.tsx    # Page content actions
 │   ├── types/
 │   │   └── chat.ts              # TypeScript interfaces
@@ -71,18 +71,20 @@ ClarifAI/
 
 ### Prerequisites
 
-- **Chrome Version**: Chrome 129+ or Chrome Canary/Dev with experimental features
+- **Chrome Version**: Chrome 127+ (for Summarizer API) or Chrome Canary/Dev (for experimental features)
 - Node.js (v16 or higher)
 - npm or yarn
 
 ### Chrome AI Features Setup
 
-For image description functionality, you may need to enable experimental features:
+For advanced image description functionality, you may need to enable experimental features in Chrome Canary/Dev:
 
 1. Navigate to `chrome://flags/`
 2. Search for "experimental web platform features" or "AI features"
 3. Enable relevant experimental flags
 4. Restart Chrome
+
+**Note**: Basic image description works using context analysis without experimental features.
 
 ### 1. Install Dependencies
 
@@ -232,11 +234,11 @@ MIT License - see LICENSE file for details
 
 ### �️ **Image Analysis & Description**
 
-1. **Multimodal AI**: Uses Chrome's Prompt API with image input capabilities
-2. **Local Processing**: All image analysis happens locally on your device
+1. **Context-based Analysis**: Uses webpage context and content analysis for image descriptions
+2. **Local Processing**: Text-based analysis happens locally on your device
 3. **Accessibility Focus**: Generates alt text suitable for screen readers
-4. **Custom Analysis**: Use specific prompts for targeted image descriptions
-5. **Privacy First**: Images are not sent to external servers
+4. **Smart Context**: Analysis includes webpage context and relevant details
+5. **Privacy First**: No external image uploads required
 
 ### �📊 **Summary Types Available**
 
@@ -255,24 +257,21 @@ MIT License - see LICENSE file for details
 
 #### For Image Description:
 
-- Chrome 129+ (stable) or Chrome Canary/Dev with experimental features
-- Prompt API with multimodal capabilities enabled
-- User activation required (click/tap to trigger)
-- Model download on first use (requires internet connection)
+- Chrome 127+ (basic context-based analysis)
+- Chrome Canary/Dev with experimental features (advanced multimodal analysis)
+- Context menu integration (no special requirements)
+- Analysis based on webpage context and image metadata
 
-### 🧪 **Testing Image Description**
+### 🧪 **Testing Features**
 
-You can test the Prompt API functionality using the browser console:
+You can test the core functionality using the browser console:
 
 ```javascript
-// Test API availability
-await window.testPromptApiAvailability();
+// Test Summarizer API availability
+console.log("Testing Summarizer API...");
 
-// Test session creation
-await window.testCreateSession();
-
-// Run all tests
-await window.testPromptApi();
+// Test basic features (no experimental requirements)
+// Context menu image description works without special setup
 ```
 
 ## Roadmap
@@ -281,11 +280,9 @@ await window.testPromptApi();
 - [x] ✅ Content extraction from webpages
 - [x] ✅ Feynman Technique explanations
 - [x] ✅ Multiple summary formats
-- [x] ✅ Image description with Prompt API
+- [x] ✅ Image description with context analysis
 - [x] ✅ Context menu image description
 - [x] ✅ Web-native image integration
-- [ ] 🔄 Multiple image comparison analysis
-- [ ] 🔄 Audio description capabilities
 - [ ] 🔄 Message persistence and history
 - [ ] 🔄 Enhanced conversation context
 - [ ] 🔄 Settings and preferences
@@ -293,11 +290,10 @@ await window.testPromptApi();
 
 ---
 
-**Note**: This extension uses Chrome's experimental AI APIs (Summarizer and Prompt API). Availability may vary based on your Chrome version and region. For the best experience with image description features, use Chrome 129+ or enable experimental features in chrome://flags/.
+**Note**: This extension uses Chrome's AI APIs (primarily the Summarizer API). Image description works through context analysis and doesn't require experimental features. Advanced multimodal capabilities are available in Chrome Canary/Dev but are not required for core functionality.
 
 ## Documentation
 
-- [Image Description Feature Guide](./IMAGE_DESCRIPTION_GUIDE.md) - Detailed guide for the image description functionality
 - [Image Context Menu Testing Guide](./IMAGE_CONTEXT_MENU_TEST_GUIDE.md) - How to test the image description context menu
 - [Context Menu Testing Guide](./TESTING_CONTEXT_MENU.md) - How to test context menu features
 - [Quick Test Guide](./QUICK_TEST_GUIDE.md) - Quick testing checklist
