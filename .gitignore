@@ -122,7 +122,7 @@ web_modules/
 
 # Gatsby files
 .cache/
-public
+# public  # Commented out - we need public/ for Chrome extension manifest and assets
 
 # Storybook build outputs
 .out
