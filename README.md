@@ -297,3 +297,7 @@ console.log("Testing Summarizer API...");
 - [Image Context Menu Testing Guide](./IMAGE_CONTEXT_MENU_TEST_GUIDE.md) - How to test the image description context menu
 - [Context Menu Testing Guide](./TESTING_CONTEXT_MENU.md) - How to test context menu features
 - [Quick Test Guide](./QUICK_TEST_GUIDE.md) - Quick testing checklist
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
