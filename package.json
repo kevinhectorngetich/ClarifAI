@@ -5,7 +5,7 @@
   "main": "dist/popup.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && cp public/manifest.json dist/",
+    "build": "tsc && vite build && cp public/manifest.json dist/ && cp -r public/images dist/",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },

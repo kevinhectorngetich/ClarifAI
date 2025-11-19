@@ -14,10 +14,13 @@ export type Language =
     | 'ar' // Arabic
     | 'hi'; // Hindi
 
+export type Avatar = 'man' | 'woman';
+
 export interface Settings {
     theme: Theme;
     language: Language;
     languageName?: string;
+    avatar: Avatar;
 }
 
 export interface ChatHistory {
@@ -52,4 +55,5 @@ export const DEFAULT_SETTINGS: Settings = {
     theme: 'auto',
     language: 'en',
     languageName: 'English',
+    avatar: 'man',
 };

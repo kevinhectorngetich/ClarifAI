@@ -19,13 +19,16 @@ import {
   loadChatById,
   startNewChat,
 } from "./utils/storage";
+import { useTranslation } from "./hooks/useTranslation";
 
 const App: React.FC = () => {
+  const { t } = useTranslation();
+
   const [chatState, setChatState] = useState<ChatState>({
     messages: [
       {
         id: generateMessageId(),
-        content: "Hello! I'm ClarifAI. What can I help you with?",
+        content: t.welcomeMessage,
         role: "assistant",
         timestamp: new Date(),
       },
@@ -38,6 +41,7 @@ const App: React.FC = () => {
     theme: "auto",
     language: "en",
     languageName: "English",
+    avatar: "man",
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -304,7 +308,7 @@ const App: React.FC = () => {
               ClarifAI
             </h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              AI-powered clarification assistant
+              {t.appDescription}
             </p>
           </div>
         </div>
@@ -341,7 +345,7 @@ const App: React.FC = () => {
       {/* Messages container */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {chatState.messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage key={message.id} message={message} userAvatar={settings.avatar} />
         ))}
 
         {/* Loading indicator */}
@@ -360,7 +364,7 @@ const App: React.FC = () => {
                 ></div>
               </div>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                ClarifAI is thinking...
+                {t.thinking}
               </span>
             </div>
           </div>

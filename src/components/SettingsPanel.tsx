@@ -5,6 +5,7 @@ import {
   Theme,
   Language,
   ChatHistory,
+  Avatar,
 } from "../types/settings";
 import {
   getSettings,
@@ -13,6 +14,7 @@ import {
   deleteChatById,
   clearAllHistory,
 } from "../utils/storage";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -34,6 +36,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     theme: "auto",
     language: "en",
     languageName: "English",
+    avatar: "man",
   });
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +79,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     onSettingsChange(newSettings);
   };
 
+  const handleAvatarChange = async (avatar: Avatar) => {
+    const newSettings = { ...settings, avatar };
+    setSettings(newSettings);
+    await saveSettings(newSettings);
+    onSettingsChange(newSettings);
+  };
+
   const handleDeleteChat = async (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Delete this chat?")) {
@@ -107,18 +117,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const formatDate = (date: Date): string => {
+    // Ensure we have a valid Date object
+    const dateObj = date instanceof Date ? date : new Date(date);
+
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return "Recently";
+    }
+
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = now.getTime() - dateObj.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString();
+    if (minutes < 1) return `${t.justNow}`;
+    if (minutes < 60) return `${minutes}${t.minutesAgo}`;
+    if (hours < 24) return `${hours}${t.hoursAgo}`;
+    if (days < 7) return `${days}${t.daysAgo}`;
+    return dateObj.toLocaleDateString();
   };
+
+  const { t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -127,7 +147,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Settings
+          {t.settingsTitle}
         </h2>
         <button
           onClick={onClose}
@@ -160,7 +180,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
-          General
+          {t.generalTab}
         </button>
         <button
           onClick={() => setActiveTab("history")}
@@ -170,7 +190,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
-          History ({chatHistory.length})
+          {t.historyTab} ({chatHistory.length})
         </button>
       </div>
 
@@ -181,7 +201,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             {/* Theme Setting */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Theme
+                {t.themeLabel}
               </label>
               <div className="space-y-2">
                 {(["light", "dark", "auto"] as Theme[]).map((theme) => (
@@ -253,13 +273,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         </svg>
                       )}
                       <span
-                        className={`text-sm font-medium capitalize ${
+                        className={`text-sm font-medium ${
                           settings.theme === theme
                             ? "text-primary-700 dark:text-primary-300"
                             : "text-gray-900 dark:text-white"
                         }`}
                       >
-                        {theme}
+                        {theme === "light"
+                          ? t.lightTheme
+                          : theme === "dark"
+                          ? t.darkTheme
+                          : t.autoTheme}
                       </span>
                     </div>
                     {settings.theme === theme && (
@@ -286,7 +310,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 htmlFor="language"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
               >
-                Response Language
+                {t.languageLabel}
               </label>
               <select
                 id="language"
@@ -303,7 +327,47 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 ))}
               </select>
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                AI responses will be generated in this language
+                {t.languageHint}
+              </p>
+            </div>
+
+            {/* Avatar Setting */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                {t.avatarLabel}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {(['man', 'woman'] as Avatar[]).map((avatar) => (
+                  <button
+                    key={avatar}
+                    onClick={() => handleAvatarChange(avatar)}
+                    className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all ${
+                      settings.avatar === avatar
+                        ? 'border-primary-500 bg-primary-500/10 dark:bg-primary-500/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className={`w-16 h-16 rounded-full overflow-hidden mb-2 ${
+                      settings.avatar === avatar ? 'ring-2 ring-primary-500' : ''
+                    }`}>
+                      <img
+                        src={`/images/${avatar}.png`}
+                        alt={avatar === 'man' ? t.manAvatar : t.womanAvatar}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      settings.avatar === avatar
+                        ? 'text-primary-700 dark:text-primary-300'
+                        : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {avatar === 'man' ? t.manAvatar : t.womanAvatar}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {t.avatarHint}
               </p>
             </div>
           </div>
@@ -325,10 +389,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   />
                 </svg>
                 <p className="text-gray-500 dark:text-gray-400">
-                  No chat history yet
+                  {t.noHistoryTitle}
                 </p>
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                  Your conversations will appear here
+                  {t.noHistoryDesc}
                 </p>
               </div>
             ) : (
@@ -351,7 +415,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         d="M12 4v16m8-8H4"
                       />
                     </svg>
-                    <span>New Chat</span>
+                    <span>{t.newChatButton}</span>
                   </button>
                   {chatHistory.length > 0 && (
                     <button
@@ -359,7 +423,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       disabled={isLoading}
                       className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50"
                     >
-                      Clear All
+                      {t.clearAllButton}
                     </button>
                   )}
                 </div>
@@ -385,7 +449,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                             •
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {chat.messages.length} messages
+                            {chat.messages.length} {t.messagesCount}
                           </span>
                         </div>
                       </div>
@@ -393,7 +457,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         onClick={(e) => handleDeleteChat(chat.id, e)}
                         disabled={isLoading}
                         className="opacity-0 group-hover:opacity-100 p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all disabled:opacity-50"
-                        aria-label="Delete chat"
+                        aria-label={t.deleteChat}
                       >
                         <svg
                           className="w-4 h-4"

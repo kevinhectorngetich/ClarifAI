@@ -2,12 +2,14 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { Message } from "../types/chat";
 import CopyButton from "./CopyButton";
+import { Avatar } from "../types/settings";
 
 interface ChatMessageProps {
   message: Message;
+  userAvatar?: Avatar;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, userAvatar = 'man' }) => {
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
 
@@ -20,13 +22,15 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       >
         {/* Avatar */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-            isUser
-              ? "bg-primary-500 text-white ml-2"
-              : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mr-2"
+          className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center ${
+            isUser ? "ml-2" : "mr-2"
           }`}
         >
-          {isUser ? "U" : "AI"}
+          <img
+            src={isUser ? `/images/${userAvatar}.png` : '/images/bot.png'}
+            alt={isUser ? 'User' : 'AI Bot'}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* Message bubble */}

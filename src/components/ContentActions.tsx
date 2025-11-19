@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { summarizeSelectedContent, checkPermissions } from "../utils/api";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface ContentActionsProps {
   onSummaryGenerated: (summary: string) => void;
@@ -50,31 +51,32 @@ const ContentActions: React.FC<ContentActionsProps> = ({
       setProgress(0);
     }
   };
+  const { t } = useTranslation();
 
   const summaryTypes = [
     {
       key: "key-points" as const,
-      label: "Key Points",
+      label: t.keyPointsLabel,
       icon: "•",
-      description: "Main bullet points",
+      description: t.keyPointsDesc,
     },
     {
       key: "tldr" as const,
-      label: "TL;DR",
+      label: t.tldrLabel,
       icon: "⚡",
-      description: "Quick overview",
+      description: t.tldrDesc,
     },
     {
       key: "teaser" as const,
-      label: "Teaser",
+      label: t.teaserLabel,
       icon: "🎯",
-      description: "Most interesting parts",
+      description: t.teaserDesc,
     },
     {
       key: "headline" as const,
-      label: "Headline",
+      label: t.headlineLabel,
       icon: "📰",
-      description: "Main point summary",
+      description: t.headlineDesc,
     },
   ];
 
@@ -89,9 +91,7 @@ const ContentActions: React.FC<ContentActionsProps> = ({
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-sm font-medium">
-            Permission needed to access page content
-          </span>
+          <span className="text-sm font-medium">{t.permissionNeeded}</span>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ const ContentActions: React.FC<ContentActionsProps> = ({
       >
         <div className="flex items-center space-x-2">
           <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            📄 Summarize Current Page
+            {t.summarizeTitle}
           </span>
           {!hasPermissions && hasPermissions !== null && (
             <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
@@ -143,7 +143,7 @@ const ContentActions: React.FC<ContentActionsProps> = ({
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                 <span className="text-sm text-blue-700">
-                  Generating summary...
+                  {t.generatingSummary}
                 </span>
               </div>
               {progress > 0 && (
@@ -184,8 +184,7 @@ const ContentActions: React.FC<ContentActionsProps> = ({
           </div>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
-            Select text on the page for focused summaries, or get full page
-            summary
+            {t.selectTextHint}
           </p>
         </div>
       )}

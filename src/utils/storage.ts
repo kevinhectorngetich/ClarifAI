@@ -115,8 +115,15 @@ export const saveCurrentChat = async (messages: Message[]): Promise<string> => {
         const chatData: ChatHistory = {
             id: currentChatId,
             title,
-            messages,
-            createdAt: existingChatIndex >= 0 ? history[existingChatIndex].createdAt : now,
+            messages: messages.map(msg => ({
+                ...msg,
+                timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)
+            })),
+            createdAt: existingChatIndex >= 0
+                ? (history[existingChatIndex].createdAt instanceof Date
+                    ? history[existingChatIndex].createdAt
+                    : new Date(history[existingChatIndex].createdAt))
+                : now,
             updatedAt: now,
         };
 
