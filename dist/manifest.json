@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ClarifAI",
   "version": "1.0.0",
-  "description": "AI-powered chat assistant Chrome Extension",
+  "description": "AI-powered content clarification and image description Chrome Extension",
   "permissions": [
     "activeTab",
     "storage",

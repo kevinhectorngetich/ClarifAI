@@ -174,7 +174,8 @@ export const generateSummary = async (
 export const generateFeynmanExplanation = async (
     topic: string,
     context: string,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    languageInstruction?: string
 ): Promise<string> => {
     try {
         console.log('Generating Feynman explanation for topic:', topic);
@@ -196,7 +197,7 @@ Instructions: Provide a comprehensive explanation of this programming concept:
 4. Best practices
 5. Common misconceptions or pitfalls
 
-Use markdown formatting and make it beginner-friendly but thorough.
+Use markdown formatting and make it beginner-friendly but thorough.${languageInstruction || ''}
 `;
         } else {
             // Use the context-rich approach for other topics
@@ -212,7 +213,7 @@ Instructions: Explain this topic using clear, simple language:
 4. Break down any complex parts
 5. Use analogies where helpful
 
-Make it engaging and easy to understand.
+Make it engaging and easy to understand.${languageInstruction || ''}
 `;
         }
 
@@ -220,7 +221,7 @@ Make it engaging and easy to understand.
             type: 'tldr',
             format: 'markdown',
             length: 'long',
-            context: 'This should be an educational explanation using simple terms and examples'
+            context: `This should be an educational explanation using simple terms and examples${languageInstruction || ''}`
         }, onProgress);
 
         return explanation;

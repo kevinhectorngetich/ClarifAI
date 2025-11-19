@@ -1,4 +1,5 @@
 import { Message } from '../types/chat';
+import { Settings } from '../types/settings';
 
 // Placeholder function for AI response - will be replaced with Chrome Summarizer API
 import { extractPageContent, PageContent } from './contentExtraction';
@@ -7,7 +8,8 @@ import { generateFeynmanExplanation, generateSummary, checkSummarizerAvailabilit
 // Enhanced AI response with Chrome Summarizer API integration
 export const fetchAIResponse = async (
     userMessage: string,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    settings?: Settings
 ): Promise<string> => {
     try {
         console.log('Starting AI response generation for:', userMessage);
@@ -34,11 +36,14 @@ export const fetchAIResponse = async (
                 console.log('Using basic tab info as context:', basicContext);
 
                 // Try to answer the question with just the basic context
+                const languageInstruction = settings?.language && settings.language !== 'en'
+                    ? ` Respond in ${settings.languageName || settings.language}.`
+                    : '';
                 return await generateSummary(basicContext, {
                     type: 'tldr',
                     format: 'markdown',
                     length: 'medium',
-                    context: `Answer this question: "${userMessage}". If you don't have enough context, provide a general explanation of the concept.`
+                    context: `Answer this question: "${userMessage}". If you don't have enough context, provide a general explanation of the concept.${languageInstruction}`
                 }, onProgress);
             } catch (fallbackError) {
                 console.error('Fallback generation failed:', fallbackError);
@@ -61,7 +66,10 @@ export const fetchAIResponse = async (
 
             const topic = userMessage.replace(/^(explain|clarify|what|how|why|what does|what is|how does)\s*/i, '').trim();
 
-            return await generateFeynmanExplanation(topic, context, onProgress);
+            const languageInstruction = settings?.language && settings.language !== 'en'
+                ? ` Respond in ${settings.languageName || settings.language}.`
+                : '';
+            return await generateFeynmanExplanation(topic, context, onProgress, languageInstruction);
         } else {
             // Generate a summary-based response
             const context = `
@@ -71,11 +79,14 @@ Content: ${pageContent.text}
 User Question: ${userMessage}
 `;
 
+            const languageInstruction = settings?.language && settings.language !== 'en'
+                ? ` Respond in ${settings.languageName || settings.language}.`
+                : '';
             return await generateSummary(context, {
                 type: 'tldr',
                 format: 'markdown',
                 length: 'medium',
-                context: `Answer the user's question about this webpage content: "${userMessage}"`
+                context: `Answer the user's question about this webpage content: "${userMessage}"${languageInstruction}`
             }, onProgress);
         }
     } catch (error) {
